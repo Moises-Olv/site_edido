@@ -722,7 +722,7 @@ function showMessage(message, type) {
 // Carregar dados do localStorage
 async function loadData() {
     try {
-        const snap = await getDoc(doc(db, "siteData", "main"));
+        const snap = await getDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"));
 
         if (snap.exists()) {
             const data = snap.data();
@@ -744,7 +744,7 @@ async function loadData() {
 // Salvar dados no localStorage
 async function saveData() {
     try {
-        await setDoc(doc(db, "siteData", "main"), {
+        await setDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"), {
             acceptanceDate: acceptanceDate
                 ? acceptanceDate.toISOString()
                 : null,
