@@ -402,8 +402,7 @@ function askAdminPassword() {
         return;
     }
     
-    // Senha simples (você pode mudar para o que quiser)
-    const correctPassword = 'amor123';
+    const correctPassword = 'digiteasenha123';
     
     if (password === correctPassword) {
         // Autenticar com sucesso
