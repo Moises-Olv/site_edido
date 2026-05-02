@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Namoro ❤️</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="hearts-background">
+        <div class="heart"></div><div class="heart"></div><div class="heart"></div>
+        <div class="heart"></div><div class="heart"></div><div class="heart"></div>
+        <div class="heart"></div><div class="heart"></div><div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+    <div class="container">
+        <section id="proposal-screen" class="screen active">
+            <div class="proposal-content">
+                <h1 class="title">Você quer namorar comigo? ❤️</h1>
+                <div class="images-gallery">
+                    <div class="image-container"><img src="https://via.placeholder.com/300x300/FF69B4/FFFFFF?text=Nossa+Foto+1" alt="Foto 1" class="couple-photo"></div>
+                    <div class="image-container"><img src="https://via.placeholder.com/300x300/FF69B4/FFFFFF?text=Nossa+Foto+2" alt="Foto 2" class="couple-photo"></div>
+                    <div class="image-container"><img src="https://via.placeholder.com/300x300/FF69B4/FFFFFF?text=Nossa+Foto+3" alt="Foto 3" class="couple-photo"></div>
+                </div>
+                <div class="message">
+                    <p>Desde que te conheci, minha vida ficou mais bonita e completa.</p>
+                    <p>Cada momento ao seu lado é especial, e eu gostaria de ter muitos mais momentos assim.</p>
+                    <p>Então, com todo o meu coração...</p>
+                </div>
+                <div class="buttons-container">
+                    <button id="yes-btn" class="btn yes-btn">Sim ❤️</button>
+                    <button id="no-btn" class="btn no-btn">Não 💔</button>
+                </div>
+            </div>
+        </section>
+        <section id="acceptance-screen" class="screen">
+            <div class="acceptance-content">
+                <h1 class="celebration-title">Ela aceitou! 🎉❤️</h1>
+                <div class="timeline">
+                    <h2>Linha do Tempo do Amor</h2>
+                    <div class="timeline-item">
+                        <div class="timeline-icon">💕</div>
+                        <div class="timeline-content">
+                            <h3>Anna aceitou o pedido!</h3>
+                            <p id="acceptance-date">Carregando...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="love-counter">
+                    <h2>Tempo de Namoro</h2>
+                    <div class="counter-display">
+                        <div class="counter-item"><span id="days" class="counter-number">0</span><span class="counter-label">dias</span></div>
+                        <div class="counter-item"><span id="hours" class="counter-number">0</span><span class="counter-label">horas</span></div>
+                        <div class="counter-item"><span id="minutes" class="counter-number">0</span><span class="counter-label">minutos</span></div>
+                        <div class="counter-item"><span id="seconds" class="counter-number">0</span><span class="counter-label">segundos</span></div>
+                    </div>
+                    <p class="love-message">Estamos namorando há <span id="love-text">0 dias, 0 horas, 0 minutos e 0 segundos</span> ❤️</p>
+                </div>
+                <div class="special-dates">
+                    <h2>Datas Especiais</h2>
+                    <div id="special-dates-list" class="dates-list"></div>
+                </div>
+                <div id="secret-admin" class="secret-admin">
+                    <div class="admin-icon">⚙️</div>
+                    <div class="admin-panel">
+                        <button id="reset-time-btn" class="admin-btn">Resetar Tempo</button>
+                        <button id="reset-all-btn" class="admin-btn">Resetar Tudo</button>
+                        <div class="admin-divider"></div>
+                        <div class="admin-section-title">Gerenciar Datas</div>
+                        <select id="date-select" class="date-select"><option value="">Selecione uma data...</option></select>
+                        <button id="move-up-btn" class="admin-btn">⬆️ Mover para Cima</button>
+                        <button id="move-down-btn" class="admin-btn">⬇️ Mover para Baixo</button>
+                        <button id="delete-date-btn" class="admin-btn delete-btn">🗑️ Deletar Data</button>
+                        <div class="admin-divider"></div>
+                        <div class="admin-section-title">Adicionar Data Especial</div>
+                        <input type="text" id="date-title" placeholder="Título da data especial" class="date-input">
+                        <input type="date" id="date-value" class="date-input">
+                        <input type="text" id="date-description" placeholder="Descrição (opcional)" class="date-input">
+                        <button id="add-date-btn" class="admin-btn">➕ Adicionar Data</button>
+                        <div class="admin-divider"></div>
+                        <div class="admin-section-title">Adicionar Foto</div>
+                        <select id="photo-date-select" class="date-select"><option value="">Selecione uma data para foto...</option></select>
+                        <div class="image-upload-container">
+                            <label for="admin-date-image" class="image-upload-label">📷 Adicionar Foto</label>
+                            <input type="file" id="admin-date-image" accept="image/*" class="date-image-input">
+                            <div id="admin-image-preview" class="image-preview"></div>
+                        </div>
+                        <button id="add-photo-btn" class="admin-btn">📷 Adicionar Foto à Data</button>
+                        <div class="admin-divider"></div>
+                        <button id="share-data-btn" class="admin-btn share-btn">📱 Copiar Link do Site</button>
+                        <button id="admin-logout-btn" class="admin-btn logout-btn">🔒 Sair do Admin</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="image-modal" class="image-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <img id="modal-image" src="" alt="Foto ampliada">
+            <div class="modal-info">
+                <h3 id="modal-title"></h3>
+                <p id="modal-date"></p>
+                <p id="modal-description"></p>
+            </div>
+        </div>
+    </div>
+    <div id="confetti-container" class="confetti-container"></div>
+    <script src="script.js"></script>
+</body>
+</html>
