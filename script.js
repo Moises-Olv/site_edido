@@ -96,7 +96,7 @@ function setupEventListeners() {
     addPhotoBtn.addEventListener('click', addPhotoToDate);
 
     document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
-    document.getElementById('share-data-btn').addEventListener('click', shareData);
+
 
     closeModal.addEventListener('click', closeImageModal);
     imageModal.addEventListener('click', function (e) {
@@ -572,7 +572,7 @@ function updatePhotoDateSelect() {
 }
 
 // Upload de imagem no admin
-async function handleAdminImageUpload(e) {
+function handleAdminImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -586,27 +586,18 @@ async function handleAdminImageUpload(e) {
         return;
     }
 
-    try {
-        const storageRef = ref(
-            storage,
-            `fotos/${Date.now()}-${file.name}`
-        );
+    const reader = new FileReader();
 
-        await uploadBytes(storageRef, file);
-
-        const imageUrl = await getDownloadURL(storageRef);
-
-        currentImageData = imageUrl;
+    reader.onload = function(event) {
+        currentImageData = event.target.result;
 
         adminImagePreview.innerHTML =
-            `<img src="${imageUrl}" alt="Preview">`;
+            `<img src="${currentImageData}" alt="Preview">`;
 
-        showMessage('Imagem enviada com sucesso!', 'success');
+        showMessage('Imagem carregada com sucesso!', 'success');
+    };
 
-    } catch (e) {
-        console.error(e);
-        showMessage('Erro ao enviar imagem!', 'error');
-    }
+    reader.readAsDataURL(file);
 }
 
 // Adicionar foto à data selecionada
