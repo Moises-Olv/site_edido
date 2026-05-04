@@ -76,6 +76,13 @@ body {
 
 .celebration-title { font-size: 2.5rem; color: #fff; margin-bottom: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); animation: bounce 1s ease-in-out infinite; }
 
+.cat-video-container { text-align: center; margin: 2rem 0; padding: 1.5rem; background: rgba(255,255,255,0.1); border-radius: 20px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.2); }
+
+.special-image { max-width: 150px; width: 100%; height: auto; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; animation: float-special 3s ease-in-out infinite; }
+.special-image:hover { transform: scale(1.05); box-shadow: 0 15px 50px rgba(0,0,0,0.4); }
+
+.cat-video-caption { color: #fff; font-size: 1.2rem; margin-top: 1rem; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 .timeline { background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 20px; margin: 2rem 0; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
@@ -159,24 +166,45 @@ body {
 @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
 @media (max-width: 768px) {
-    .title { font-size: 2rem; }
-    .celebration-title { font-size: 1.8rem; }
-    .images-gallery { flex-direction: column; align-items: center; }
+    .title { font-size: 2rem; margin-bottom: 1.5rem; }
+    .celebration-title { font-size: 1.8rem; margin-bottom: 1.5rem; }
+    .special-image-container { margin: 1rem 0; padding: 1rem; }
+    .special-image { max-width: 200px; }
+    .cat-video-container { margin: 1rem 0; padding: 1rem; }
+    .cat-video { max-width: 120px; }
+    .images-gallery { justify-content: center; gap: 10px; flex-wrap: wrap; }
     .couple-photo { width: 150px; height: 150px; }
-    .buttons-container { flex-direction: column; align-items: center; }
-    .counter-display { gap: 1rem; }
+    .buttons-container { flex-direction: column; align-items: center; gap: 15px; }
+    .btn { padding: 12px 35px; font-size: 1.1rem; }
+    .message { padding: 1.5rem; margin: 1.5rem 0; }
+    .message p { font-size: 1rem; }
+    .counter-display { gap: 0.5rem; flex-wrap: wrap; }
     .counter-item { min-width: 60px; padding: 0.5rem; }
     .counter-number { font-size: 1.5rem; }
+    .timeline, .love-counter, .special-dates { padding: 1.5rem; margin: 1.5rem 0; }
     .admin-panel { position: fixed; bottom: 80px; right: 10px; left: 10px; min-width: auto; max-width: none; max-height: 70vh; transform: none; }
     .secret-admin { bottom: 10px; right: 10px; }
+    .admin-icon { width: 40px; height: 40px; font-size: 1.2rem; }
 }
 
 @media (max-width: 480px) {
-    .message { padding: 1rem; }
-    .message p { font-size: 1rem; }
-    .btn { padding: 12px 30px; font-size: 1.1rem; }
-    .timeline, .love-counter, .special-dates { padding: 1rem; }
+    .title { font-size: 1.8rem; margin-bottom: 1rem; }
+    .celebration-title { font-size: 1.5rem; margin-bottom: 1rem; }
+    .special-image-container { margin: 0.8rem 0; padding: 0.8rem; }
+    .special-image { max-width: 180px; }
+    .cat-video-container { margin: 0.8rem 0; padding: 0.8rem; }
+    .cat-video { max-width: 100px; }
+    .message { padding: 1rem; margin: 1rem 0; }
+    .message p { font-size: 0.95rem; line-height: 1.4; }
+    .btn { padding: 10px 25px; font-size: 1rem; }
+    .timeline, .love-counter, .special-dates { padding: 1rem; margin: 1rem 0; }
     .admin-panel { bottom: 70px; right: 5px; left: 5px; padding: 10px; max-height: 60vh; }
     .secret-admin { bottom: 5px; right: 5px; }
     .admin-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+    .container { padding: 15px; }
+    .couple-photo { width: 120px; height: 120px; }
+    .counter-display { gap: 0.3rem; }
+    .counter-item { min-width: 50px; padding: 0.4rem; }
+    .counter-number { font-size: 1.3rem; }
+    .counter-label { font-size: 0.8rem; }
 }
