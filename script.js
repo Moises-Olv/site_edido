@@ -237,7 +237,7 @@ function setupEventListeners() {
 async function handleYesClick() {
     acceptanceDate = new Date();
     await saveData();
-    showAcceptanceBanner();
+    showAcceptanceScreen();
     startCounter();
     createConfetti();
     updateAcceptanceDate();
@@ -301,6 +301,11 @@ function showProposalScreen() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
     document.getElementById('acceptance-banner').style.display = 'none';
+}
+
+function showAcceptanceScreen() {
+    proposalScreen.classList.remove('active');
+    acceptanceScreen.classList.add('active');
 }
 
 function showAcceptanceBanner() {
