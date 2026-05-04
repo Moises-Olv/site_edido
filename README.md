@@ -1,6 +1,3 @@
-# Site de Pedido de Namoro ❤️
-
-Site romântico para pedido de namoro com sistema completo de gerenciamento de datas especiais e fotos.
 
 ## 🚀 Funcionalidades
 
