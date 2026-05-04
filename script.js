@@ -246,13 +246,12 @@ function setupEventListeners() {
 // BOTÃO SIM
 // =====================================================
 async function handleYesClick() {
-    // Proteção dupla: variável em memória E botão desabilitado
-    if (acceptanceDate || yesBtn.disabled) {
+    if (acceptanceDate) {
         showAcceptanceScreen();
         window.scrollTo(0, 0);
         return;
     }
-    disableYesBtn(); // Desabilita imediatamente antes de qualquer coisa
+    hideYesBtn();
     acceptanceDate = new Date();
     await saveData();
     showAcceptanceScreen();
@@ -262,10 +261,12 @@ async function handleYesClick() {
     updateAcceptanceDate();
 }
 
+function hideYesBtn() {
+    yesBtn.style.display = 'none';
+}
+
 function disableYesBtn() {
-    yesBtn.disabled = true;
-    yesBtn.style.opacity = '0.5';
-    yesBtn.style.cursor = 'not-allowed';
+    yesBtn.style.display = 'none';
 }
 
 // =====================================================
@@ -499,6 +500,7 @@ function handleResetAll() {
         saveData();
         // Reativar botão Sim
         yesBtn.disabled = false;
+        yesBtn.style.display = '';
         yesBtn.style.opacity = '';
         yesBtn.style.cursor = '';
         showProposalScreen();
