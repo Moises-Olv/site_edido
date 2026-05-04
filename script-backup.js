@@ -735,14 +735,7 @@ function showMessage(message, type) {
 
 // Carregar dados do Firebase com fallback para localStorage
 async function loadData() {
-    console.log("🔍 Iniciando diagnóstico do Firebase...");
-    
     try {
-        // Testar conexão básica com Firebase
-        console.log("📍 Testando conexão com Firebase...");
-        console.log("📍 Projeto ID: sitepedido-79bb0");
-        console.log("📍 Documento: amorVaultX92/linhaTempoAnna2026");
-        
         // Tentar carregar do Firebase primeiro
         const snap = await getDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"));
 
@@ -761,37 +754,14 @@ async function loadData() {
                 specialDates: specialDates
             }));
 
-            console.log("✅ Dados carregados do Firebase com sucesso!");
-            showMessage("Conectado ao Firebase! 🎉", "success");
+            console.log("Dados carregados do Firebase");
         } else {
-            console.log("⚠️ Documento não encontrado no Firebase");
-            console.log("📦 Usando localStorage...");
+            // Se não existe no Firebase, tentar localStorage
             loadFromLocalStorage();
-            showMessage("Documento não encontrado. Usando armazenamento local.", "warning");
         }
     } catch (e) {
-        console.error("❌ Erro detalhado ao carregar Firebase:", e);
-        
-        // Análise específica do erro
-        if (e.code === 'permission-denied') {
-            console.log("🚫 PROBLEMA: Regras de segurança do Firestore negando acesso");
-            console.log("🔧 SOLUÇÃO: Alterar regras no Console Firebase > Firestore > Regras");
-            showMessage("Erro de permissão no Firebase! Verifique as regras de segurança.", "error");
-        } else if (e.code === 'unavailable' || e.code === 'resource-exhausted') {
-            console.log("🚫 PROBLEMA: Projeto Firebase desativado ou quota excedida");
-            console.log("🔧 SOLUÇÃO: Verificar se o projeto está ativo no Console Firebase");
-            showMessage("Projeto Firebase indisponível! Verifique o console.", "error");
-        } else if (e.message && e.message.includes('CORS')) {
-            console.log("🚫 PROBLEMA: CORS bloqueando acesso");
-            console.log("🔧 SOLUÇÃO: Configurar domínio autorizado no Firebase");
-            showMessage("Erro de CORS! Configure o domínio no Firebase.", "error");
-        } else {
-            console.log("🚫 PROBLEMA: Erro desconhecido");
-            console.log("🔧 SOLUÇÃO: Verificar configuração completa do Firebase");
-            showMessage("Erro no Firebase! Usando localStorage.", "warning");
-        }
-        
-        console.log("📦 Usando localStorage como fallback...");
+        console.error("Erro ao carregar Firebase:", e);
+        console.log("Usando localStorage como fallback...");
         loadFromLocalStorage();
     }
 }
