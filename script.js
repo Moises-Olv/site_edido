@@ -294,11 +294,11 @@ function handleNoHover(e) {
 function handleNoClick(e) {
     e.preventDefault();
     const messages = [
-        'Ainda não desisti! 😊',
-        'Por favor, pense mais! 🥺',
-        'Eu sei que você quer dizer sim! 💕',
-        'Não desista de nós! 💔',
-        'Tente novamente! 🌹'
+        '😭',
+        '😭',
+        '😭',
+        '😭',
+        '😭'
     ];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     const messageElement = document.createElement('div');
@@ -406,7 +406,7 @@ function addSpecialDate() {
     dateDescriptionInput.value = '';
     currentImageData = null;
 
-    showMessage('Data especial adicionada! 💕', 'success');
+    showMessage('Data especial adicionada! ', 'success');
 }
 
 function renderSpecialDates() {
