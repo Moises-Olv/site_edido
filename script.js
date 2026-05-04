@@ -246,14 +246,17 @@ function setupEventListeners() {
 // BOTÃO SIM
 // =====================================================
 async function handleYesClick() {
-    if (acceptanceDate) {
+    // Proteção dupla: variável em memória E botão desabilitado
+    if (acceptanceDate || yesBtn.disabled) {
         showAcceptanceScreen();
+        window.scrollTo(0, 0);
         return;
     }
+    disableYesBtn(); // Desabilita imediatamente antes de qualquer coisa
     acceptanceDate = new Date();
     await saveData();
-    disableYesBtn();
     showAcceptanceScreen();
+    window.scrollTo(0, 0);
     startCounter();
     createConfetti();
     updateAcceptanceDate();
