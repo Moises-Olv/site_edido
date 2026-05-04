@@ -182,7 +182,7 @@ function checkAcceptanceStatus() {
     updatePhotoDateSelect();
 
     if (acceptanceDate) {
-        showAcceptanceBanner();
+        showAcceptanceScreen();
         startCounter();
         updateAcceptanceDate();
     } else {
@@ -214,6 +214,16 @@ function setupEventListeners() {
 
     document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
     document.getElementById('share-data-btn').addEventListener('click', copyLink);
+
+    // Botões de navegação entre telas
+    document.getElementById('btn-ver-pedido').addEventListener('click', () => {
+        showProposalScreen();
+        window.scrollTo(0, 0);
+    });
+    document.getElementById('btn-voltar-contador').addEventListener('click', () => {
+        showAcceptanceScreen();
+        window.scrollTo(0, 0);
+    });
 
     closeModal.addEventListener('click', closeImageModal);
     imageModal.addEventListener('click', function (e) {
@@ -301,6 +311,9 @@ function showProposalScreen() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
     document.getElementById('acceptance-banner').style.display = 'none';
+    // Mostrar botão de voltar ao contador se já aceitou
+    const btnVoltar = document.getElementById('btn-voltar-contador');
+    if (btnVoltar) btnVoltar.style.display = acceptanceDate ? 'inline-block' : 'none';
 }
 
 function showAcceptanceScreen() {
