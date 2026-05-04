@@ -56,12 +56,12 @@ const firebaseConfig = {
 ### Para a Pessoa que Recebe o Pedido:
 1. Acesse o site
 2. Veja as fotos e a mensagem romântica
-3. Clique em "Sim ❤️" para aceitar
+3. Clique em "Sim " para aceitar
 4. Aproveite a celebração com confetes!
 
 ### Para o Administrador:
 1. Clique no ícone ⚙️ no canto inferior direito
-2. Use a senha: `admin123` (se configurada)
+2. Use a senha(se configurada)
 3. Adicione datas especiais e fotos
 4. Gerencie o conteúdo do site
 
@@ -73,7 +73,7 @@ O site tem um sistema inteligente de backup:
 
 Se o Firebase não estiver disponível, o site continua funcionando normalmente com armazenamento local.
 
-## 🐛 Solução de Problemas
+##  Solução de Problemas
 
 ### Site não carrega no GitHub Pages:
 1. Verifique as regras do Firebase (veja acima)
@@ -90,7 +90,7 @@ Se o Firebase não estiver disponível, o site continua funcionando normalmente 
 2. Use formatos JPG, PNG ou WebP
 3. Limpe o cache do navegador
 
-## 📁 Estrutura de Arquivos
+## Estrutura de Arquivos
 
 ```
 site_edido-main/
@@ -101,11 +101,5 @@ site_edido-main/
 └── README.md          # Este arquivo
 ```
 
-## ❤️ Mensagem Especial
 
-Este site foi criado com muito carinho para tornar seu pedido de namoro ainda mais especial. 
-Cada detalhe foi pensado para criar um momento único e inesquecível!
 
----
-
-**Desenvolvido com ❤️ para momentos especiais**
