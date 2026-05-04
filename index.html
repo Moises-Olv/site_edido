@@ -32,18 +32,28 @@
                     <p>Então, com todo o meu coração...</p>
                 </div>
                 <div class="buttons-container">
-                    <button id="yes-btn" class="btn yes-btn">Sim </button>
-                    <button id="no-btn" class="btn no-btn">Não </button>
+                    <button id="yes-btn" class="btn yes-btn">Sim</button>
+                    <button id="no-btn" class="btn no-btn">Não</button>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <button id="btn-voltar-contador" style="display:none; background:none; border:none; color:rgba(255,255,255,0.8); font-size:1rem; cursor:pointer; text-decoration:underline;">
+                        Voltar para nossa pagina
+                    </button>
                 </div>
             </div>
         </section>
         <section id="acceptance-screen" class="screen">
             <div class="acceptance-content">
-                <h1 class="celebration-title">Ela aceitou! 🎉❤️</h1>
+                <h1 class="celebration-title">Ela aceitou! </h1>
+                <div style="margin-bottom: 1rem;">
+                    <button id="btn-ver-pedido" style="background:none; border:none; color:rgba(255,255,255,0.8); font-size:1rem; cursor:pointer; text-decoration:underline;">
+                        Ver o pedido de namoro
+                    </button>
+                </div>
                 <div class="timeline">
                     <h2>Linha do Tempo do Amor</h2>
                     <div class="timeline-item">
-                        <div class="timeline-icon">💕</div>
+                        <div class="timeline-icon"></div>
                         <div class="timeline-content">
                             <h3>Anna aceitou o pedido!</h3>
                             <p id="acceptance-date">Carregando...</p>
@@ -58,41 +68,41 @@
                         <div class="counter-item"><span id="minutes" class="counter-number">0</span><span class="counter-label">minutos</span></div>
                         <div class="counter-item"><span id="seconds" class="counter-number">0</span><span class="counter-label">segundos</span></div>
                     </div>
-                    <p class="love-message">Estamos namorando há <span id="love-text">0 dias, 0 horas, 0 minutos e 0 segundos</span> ❤️</p>
+                    <p class="love-message">Estamos namorando há <span id="love-text">0 dias, 0 horas, 0 minutos e 0 segundos</span> </p>
                 </div>
                 <div class="special-dates">
                     <h2>Datas Especiais</h2>
                     <div id="special-dates-list" class="dates-list"></div>
                 </div>
                 <div id="secret-admin" class="secret-admin">
-                    <div class="admin-icon">⚙️</div>
+                    <div class="admin-icon"></div>
                     <div class="admin-panel">
                         <button id="reset-time-btn" class="admin-btn">Resetar Tempo</button>
                         <button id="reset-all-btn" class="admin-btn">Resetar Tudo</button>
                         <div class="admin-divider"></div>
                         <div class="admin-section-title">Gerenciar Datas</div>
                         <select id="date-select" class="date-select"><option value="">Selecione uma data...</option></select>
-                        <button id="move-up-btn" class="admin-btn">⬆️ Mover para Cima</button>
-                        <button id="move-down-btn" class="admin-btn">⬇️ Mover para Baixo</button>
-                        <button id="delete-date-btn" class="admin-btn delete-btn">🗑️ Deletar Data</button>
+                        <button id="move-up-btn" class="admin-btn"> Mover para Cima</button>
+                        <button id="move-down-btn" class="admin-btn"> Mover para Baixo</button>
+                        <button id="delete-date-btn" class="admin-btn delete-btn"> Deletar Data</button>
                         <div class="admin-divider"></div>
                         <div class="admin-section-title">Adicionar Data Especial</div>
                         <input type="text" id="date-title" placeholder="Título da data especial" class="date-input">
                         <input type="date" id="date-value" class="date-input">
                         <input type="text" id="date-description" placeholder="Descrição (opcional)" class="date-input">
-                        <button id="add-date-btn" class="admin-btn">➕ Adicionar Data</button>
+                        <button id="add-date-btn" class="admin-btn"> Adicionar Data</button>
                         <div class="admin-divider"></div>
                         <div class="admin-section-title">Adicionar Foto</div>
                         <select id="photo-date-select" class="date-select"><option value="">Selecione uma data para foto...</option></select>
                         <div class="image-upload-container">
-                            <label for="admin-date-image" class="image-upload-label">📷 Adicionar Foto</label>
+                            <label for="admin-date-image" class="image-upload-label"> Adicionar Foto</label>
                             <input type="file" id="admin-date-image" accept="image/*" class="date-image-input">
                             <div id="admin-image-preview" class="image-preview"></div>
                         </div>
-                        <button id="add-photo-btn" class="admin-btn">📷 Adicionar Foto à Data</button>
+                        <button id="add-photo-btn" class="admin-btn"> Adicionar Foto à Data</button>
                         <div class="admin-divider"></div>
-                        <button id="share-data-btn" class="admin-btn share-btn">📱 Copiar Link do Site</button>
-                        <button id="admin-logout-btn" class="admin-btn logout-btn">🔒 Sair do Admin</button>
+                        <button id="share-data-btn" class="admin-btn share-btn"> Copiar Link do Site</button>
+                        <button id="admin-logout-btn" class="admin-btn logout-btn"> Sair do Admin</button>
                     </div>
                 </div>
             </div>
