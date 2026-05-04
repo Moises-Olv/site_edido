@@ -1,14 +1,47 @@
-import { db } from './firebase.js';
+// =====================================================
+// FIREBASE - import dinâmico (não trava o site se falhar)
+// =====================================================
+let db = null;
+let firestoreDoc = null;
+let firestoreSetDoc = null;
+let firestoreGetDoc = null;
 
-import {
-    doc,
-    setDoc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-// Variáveis globais
+async function initFirebase() {
+    try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+        const { getFirestore, doc, setDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJ0lI-zofeUtjOypurdX4Xa9dX09EwRRM",
+            authDomain: "sitepedido-79bb0.firebaseapp.com",
+            projectId: "sitepedido-79bb0",
+            storageBucket: "sitepedido-79bb0.firebasestorage.app",
+            messagingSenderId: "889662198209",
+            appId: "1:889662198209:web:67c2d2f01df5d75b4f5f40"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        firestoreDoc = doc;
+        firestoreSetDoc = setDoc;
+        firestoreGetDoc = getDoc;
+
+        console.log("✅ Firebase inicializado com sucesso!");
+        return true;
+    } catch (e) {
+        console.error("❌ Falha ao inicializar Firebase:", e);
+        db = null;
+        return false;
+    }
+}
+
+// =====================================================
+// VARIÁVEIS GLOBAIS
+// =====================================================
 let acceptanceDate = null;
 let specialDates = [];
 let counterInterval = null;
+const FIREBASE_DOC = { collection: "amorVaultX92", document: "linhaTempoAnna2026" };
 
 // =====================================================
 // ELEMENTOS DO DOM
@@ -48,26 +81,110 @@ const closeModal = document.querySelector('.close-modal');
 
 let currentImageData = null;
 
+// =====================================================
+// INICIALIZAÇÃO
+// =====================================================
+document.addEventListener('DOMContentLoaded', async function () {
+    // Configura botões ANTES do Firebase (site responde imediatamente)
+    setupEventListeners();
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', async function() {
+    // Inicializa Firebase em paralelo
+    await initFirebase();
+
+    // Carrega dados (Firebase ou localStorage)
     await loadData();
 
-    setupEventListeners();
+    // Verifica status
     checkAcceptanceStatus();
 });
 
-// Verificar status de aceitação
+// =====================================================
+// CARREGAR / SALVAR DADOS
+// =====================================================
+async function loadData() {
+    if (db) {
+        try {
+            const snap = await firestoreGetDoc(firestoreDoc(db, FIREBASE_DOC.collection, FIREBASE_DOC.document));
+            if (snap.exists()) {
+                const data = snap.data();
+                acceptanceDate = data.acceptanceDate ? new Date(data.acceptanceDate) : null;
+                specialDates = data.specialDates || [];
+                // Salva no localStorage como backup
+                salvarLocalStorage();
+                console.log("✅ Dados carregados do Firebase!");
+                return;
+            } else {
+                console.log("⚠️ Documento Firebase não encontrado, usando localStorage.");
+            }
+        } catch (e) {
+            console.error("❌ Erro ao carregar Firebase:", e);
+            if (e.code === 'permission-denied') {
+                showMessage("⚠️ Permissão negada no Firebase. Verifique as regras.", "error");
+            }
+        }
+    }
+    // Fallback: localStorage
+    carregarLocalStorage();
+}
+
+async function saveData() {
+    // Sempre salva local primeiro
+    salvarLocalStorage();
+
+    if (db) {
+        try {
+            await firestoreSetDoc(firestoreDoc(db, FIREBASE_DOC.collection, FIREBASE_DOC.document), {
+                acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
+                specialDates: specialDates
+            });
+            console.log("✅ Dados salvos no Firebase!");
+        } catch (e) {
+            console.error("❌ Erro ao salvar Firebase:", e);
+            showMessage("Firebase indisponível. Dados salvos localmente.", "warning");
+        }
+    }
+}
+
+function salvarLocalStorage() {
+    try {
+        localStorage.setItem('proposalData', JSON.stringify({
+            acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
+            specialDates: specialDates
+        }));
+    } catch (e) {
+        console.error("Erro localStorage:", e);
+    }
+}
+
+function carregarLocalStorage() {
+    try {
+        const stored = localStorage.getItem('proposalData');
+        if (stored) {
+            const data = JSON.parse(stored);
+            acceptanceDate = data.acceptanceDate ? new Date(data.acceptanceDate) : null;
+            specialDates = data.specialDates || [];
+            console.log("📦 Dados carregados do localStorage.");
+        } else {
+            specialDates = [];
+        }
+    } catch (e) {
+        console.error("Erro ao carregar localStorage:", e);
+        specialDates = [];
+    }
+}
+
+// =====================================================
+// STATUS DE ACEITAÇÃO
+// =====================================================
 function checkAcceptanceStatus() {
-    // Carregar dados e selects independente do status
     loadSpecialDates();
     updateDateSelect();
     updatePhotoDateSelect();
-    
+
     if (acceptanceDate) {
         showAcceptanceBanner();
         startCounter();
-        updateAcceptanceDate(); // Garantir que a data seja atualizada
+        updateAcceptanceDate();
     } else {
         showProposalScreen();
     }
@@ -96,7 +213,7 @@ function setupEventListeners() {
     addPhotoBtn.addEventListener('click', addPhotoToDate);
 
     document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
-
+    document.getElementById('share-data-btn').addEventListener('click', copyLink);
 
     closeModal.addEventListener('click', closeImageModal);
     imageModal.addEventListener('click', function (e) {
@@ -114,48 +231,42 @@ function setupEventListeners() {
     });
 }
 
-// Lidar com clique no botão Sim
-function handleYesClick() {
+// =====================================================
+// BOTÃO SIM
+// =====================================================
+async function handleYesClick() {
     acceptanceDate = new Date();
-
-    saveData();
-
-    // Mostrar banner de aceitação na primeira página
+    await saveData();
     showAcceptanceBanner();
     startCounter();
     createConfetti();
     updateAcceptanceDate();
 }
-// Lidar com hover no botão Não
+
+// =====================================================
+// BOTÃO NÃO
+// =====================================================
 function handleNoHover(e) {
     const button = e.target;
     const container = button.parentElement;
     const containerRect = container.getBoundingClientRect();
-    
-    // Posições aleatórias dentro do container
+
     const maxX = containerRect.width - button.offsetWidth - 20;
     const maxY = containerRect.height - button.offsetHeight - 20;
-    
+
     const randomX = Math.random() * maxX + 10;
     const randomY = Math.random() * maxY + 10;
-    
-    // Aplicar nova posição
+
     button.style.position = 'absolute';
     button.style.left = randomX + 'px';
     button.style.top = randomY + 'px';
-    
-    // Adicionar efeito visual
+
     button.style.transform = 'scale(1.1) rotate(5deg)';
-    setTimeout(() => {
-        button.style.transform = 'scale(1) rotate(0deg)';
-    }, 300);
+    setTimeout(() => { button.style.transform = 'scale(1) rotate(0deg)'; }, 300);
 }
 
-// Lidar com clique no botão Não
 function handleNoClick(e) {
     e.preventDefault();
-    
-    // Mensagem divertida
     const messages = [
         'Ainda não desisti! 😊',
         'Por favor, pense mais! 🥺',
@@ -163,205 +274,126 @@ function handleNoClick(e) {
         'Não desista de nós! 💔',
         'Tente novamente! 🌹'
     ];
-    
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-    
-    // Criar elemento de mensagem
     const messageElement = document.createElement('div');
     messageElement.textContent = randomMessage;
     messageElement.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
+        position: fixed; top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(255, 255, 255, 0.95);
-        padding: 20px 40px;
-        border-radius: 15px;
-        font-size: 1.2rem;
-        color: #333;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        z-index: 10000;
-        animation: fadeIn 0.3s ease;
+        background: rgba(255,255,255,0.95);
+        padding: 20px 40px; border-radius: 15px;
+        font-size: 1.2rem; color: #333;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        z-index: 10000; animation: fadeIn 0.3s ease;
     `;
-    
     document.body.appendChild(messageElement);
-    
-    // Remover mensagem após 2 segundos
     setTimeout(() => {
-        messageElement.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-            document.body.removeChild(messageElement);
-        }, 300);
+        messageElement.style.opacity = '0';
+        setTimeout(() => { if (document.body.contains(messageElement)) document.body.removeChild(messageElement); }, 300);
     }, 2000);
-    
-    // Mover botão para posição aleatória
     handleNoHover(e);
 }
 
-// Mostrar tela de proposta
+// =====================================================
+// TELAS
+// =====================================================
 function showProposalScreen() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
-    
-    // Ocultar o banner de aceitação
-    const banner = document.getElementById('acceptance-banner');
-    banner.style.display = 'none';
+    document.getElementById('acceptance-banner').style.display = 'none';
 }
 
-// Mostrar tela de aceitação
-function showAcceptanceScreen() {
-    proposalScreen.classList.remove('active');
-    acceptanceScreen.classList.add('active');
-}
-
-// Mostrar banner de aceitação na primeira página
 function showAcceptanceBanner() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
-    
-    // Mostrar o banner de aceitação
-    const banner = document.getElementById('acceptance-banner');
-    banner.style.display = 'block';
+    document.getElementById('acceptance-banner').style.display = 'block';
 }
 
-// Atualizar data de aceitação
 function updateAcceptanceDate() {
     if (acceptanceDate && acceptanceDateElement) {
-        const options = {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
         acceptanceDateElement.textContent = acceptanceDate.toLocaleDateString('pt-BR', options);
     }
 }
 
-// Iniciar contador de namoro
+// =====================================================
+// CONTADOR
+// =====================================================
 function startCounter() {
-    if (counterInterval) {
-        clearInterval(counterInterval);
-    }
-    
+    if (counterInterval) clearInterval(counterInterval);
     updateCounter();
     counterInterval = setInterval(updateCounter, 1000);
 }
 
-// Atualizar contador
 function updateCounter() {
     if (!acceptanceDate) return;
-    
     const now = new Date();
     const diff = now - acceptanceDate;
-    
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    // Atualizar elementos individuais
+
     document.getElementById('days').textContent = days;
     document.getElementById('hours').textContent = hours;
     document.getElementById('minutes').textContent = minutes;
     document.getElementById('seconds').textContent = seconds;
-    
-    // Atualizar texto completo
-    const loveText = document.getElementById('love-text');
-    loveText.textContent = `${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos`;
+    document.getElementById('love-text').textContent = `${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos`;
 }
 
-// Adicionar data especial
+// =====================================================
+// DATAS ESPECIAIS
+// =====================================================
+function loadSpecialDates() {
+    renderSpecialDates();
+}
+
 function addSpecialDate() {
-    // Debug: verificar se os elementos existem
-    console.log('dateTitleInput:', dateTitleInput);
-    console.log('dateValueInput:', dateValueInput);
-    console.log('dateDescriptionInput:', dateDescriptionInput);
-    
-    // Verificar se os elementos existem
-    if (!dateTitleInput || !dateValueInput) {
-        showMessage('Erro: elementos do formulário não encontrados!', 'error');
-        return;
-    }
-    
     const title = dateTitleInput.value.trim();
     const date = dateValueInput.value;
     const description = dateDescriptionInput ? dateDescriptionInput.value.trim() : '';
-    
-    // Debug: mostrar valores
-    console.log('Título:', title);
-    console.log('Data:', date);
-    console.log('Descrição:', description);
-    
-    // Validação mais detalhada
-    if (!title) {
-        showMessage('Por favor, preencha o título!', 'error');
-        if (dateTitleInput) dateTitleInput.focus();
-        return;
-    }
-    
-    if (!date) {
-        showMessage('Por favor, selecione a data!', 'error');
-        if (dateValueInput) dateValueInput.focus();
-        return;
-    }
-    
-    const specialDate = {
+
+    if (!title) { showMessage('Por favor, preencha o título!', 'error'); dateTitleInput.focus(); return; }
+    if (!date) { showMessage('Por favor, selecione a data!', 'error'); dateValueInput.focus(); return; }
+
+    specialDates.push({
         id: Date.now(),
-        title: title,
-        date: date,
-        description: description,
+        title, date, description,
         image: currentImageData
-    };
-    
-    specialDates.push(specialDate);
+    });
+
     saveData();
     renderSpecialDates();
     updateDateSelect();
     updatePhotoDateSelect();
-    
-    // Limpar campos
+
     dateTitleInput.value = '';
     dateValueInput.value = '';
     dateDescriptionInput.value = '';
     currentImageData = null;
-    
-    showMessage('Data especial adicionada com sucesso! 💕', 'success');
+
+    showMessage('Data especial adicionada! 💕', 'success');
 }
 
-// Renderizar datas especiais
 function renderSpecialDates() {
     specialDatesList.innerHTML = '';
-    
     if (specialDates.length === 0) {
-        specialDatesList.innerHTML = '<p style="color: #666; text-align: center;">Nenhuma data especial cadastrada ainda.</p>';
+        specialDatesList.innerHTML = '<p style="color:#666;text-align:center;">Nenhuma data especial cadastrada ainda.</p>';
         return;
     }
-    
-    // Ordenar por data
+
     const sortedDates = [...specialDates].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
+
     sortedDates.forEach(date => {
         const dateElement = document.createElement('div');
         dateElement.className = date.image ? 'date-item-with-image' : 'date-item';
-        
-        const dateObj = new Date(date.date);
-        const formattedDate = dateObj.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-        
-        let imageHtml = '';
-        if (date.image) {
-            imageHtml = `<img src="${date.image}" alt="${date.title}" class="date-item-image">`;
-        }
-        
-        let descriptionHtml = '';
-        if (date.description) {
-            descriptionHtml = `<div class="date-item-description">${date.description}</div>`;
-        }
-        
+
+        const dateObj = new Date(date.date + 'T12:00:00');
+        const formattedDate = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        const imageHtml = date.image ? `<img src="${date.image}" alt="${date.title}" class="date-item-image">` : '';
+        const descriptionHtml = date.description ? `<div class="date-item-description">${date.description}</div>` : '';
+
         dateElement.innerHTML = `
             ${imageHtml}
             <div class="date-item-content">
@@ -370,57 +402,37 @@ function renderSpecialDates() {
                 ${descriptionHtml}
             </div>
         `;
-        
-        // Adicionar evento de clique na imagem para ampliar
+
         if (date.image) {
-            const imgElement = dateElement.querySelector('.date-item-image');
-            if (imgElement) {
-                imgElement.addEventListener('click', function() {
-                    openImageModal(date);
-                });
-            }
+            dateElement.querySelector('.date-item-image').addEventListener('click', () => openImageModal(date));
         }
-        
+
         specialDatesList.appendChild(dateElement);
     });
 }
 
-// Toggle painel admin
+// =====================================================
+// ADMIN
+// =====================================================
 function toggleAdminPanel(e) {
     e.stopPropagation();
-    
-    // Verificar se já está autenticado
     if (isAdminAuthenticated()) {
         adminPanel.classList.toggle('active');
     } else {
-        // Pedir senha
         askAdminPassword();
     }
 }
 
-// Verificar se admin está autenticado
 function isAdminAuthenticated() {
     const authTime = localStorage.getItem('adminAuthTime');
     if (!authTime) return false;
-    
-    // Autenticação válida por 30 minutos
-    const thirtyMinutes = 30 * 60 * 1000;
-    return (Date.now() - parseInt(authTime)) < thirtyMinutes;
+    return (Date.now() - parseInt(authTime)) < 30 * 60 * 1000;
 }
 
-// Pedir senha de admin
 function askAdminPassword() {
     const password = prompt('🔐 Digite a senha de administrador:');
-    
-    if (password === null) {
-        // Usuário cancelou
-        return;
-    }
-    
-    const correctPassword = 'digiteasenha123';
-    
-    if (password === correctPassword) {
-        // Autenticar com sucesso
+    if (password === null) return;
+    if (password === 'digiteasenha123') {
         localStorage.setItem('adminAuthTime', Date.now().toString());
         adminPanel.classList.add('active');
         showMessage('🔓 Acesso autorizado!', 'success');
@@ -429,251 +441,152 @@ function askAdminPassword() {
     }
 }
 
-// Fazer logout do admin
 function adminLogout() {
     localStorage.removeItem('adminAuthTime');
     adminPanel.classList.remove('active');
     showMessage('🔒 Logout realizado!', 'info');
 }
 
-// Resetar apenas o tempo/cronômetro
 function handleResetTime() {
-    if (confirm('Tem certeza que deseja resetar apenas o tempo de namoro? As datas especiais serão mantidas.')) {
-        // Resetar apenas a data de aceite
+    if (confirm('Tem certeza que deseja resetar apenas o tempo de namoro?')) {
         acceptanceDate = null;
-        localStorage.removeItem('acceptanceDate');
-        
-        // Parar contador
-        if (counterInterval) {
-            clearInterval(counterInterval);
-            counterInterval = null;
-        }
-        
-        // Voltar para tela inicial
+        if (counterInterval) { clearInterval(counterInterval); counterInterval = null; }
+        saveData();
         showProposalScreen();
-        
-        // Fechar painel admin
         adminPanel.classList.remove('active');
-        
-        showMessage('Tempo resetado com sucesso! O pedido foi reiniciado.', 'info');
+        showMessage('Tempo resetado!', 'info');
     }
 }
 
-// Resetar tudo
 function handleResetAll() {
-    if (confirm('Tem certeza que deseja resetar TODOS os dados? Isso irá limpar o pedido de namoro e todas as datas especiais.')) {
-        // Limpar localStorage
-        localStorage.removeItem('acceptanceDate');
-        localStorage.removeItem('specialDates');
-        
-        // Resetar variáveis
+    if (confirm('Tem certeza que deseja resetar TODOS os dados?')) {
         acceptanceDate = null;
         specialDates = [];
-        
-        // Parar contador
-        if (counterInterval) {
-            clearInterval(counterInterval);
-            counterInterval = null;
-        }
-        
-        // Voltar para tela inicial
+        if (counterInterval) { clearInterval(counterInterval); counterInterval = null; }
+        saveData();
         showProposalScreen();
-        
-        // Limpar lista de datas
-        specialDatesList.innerHTML = '';
-        
-        // Fechar painel admin
+        renderSpecialDates();
         adminPanel.classList.remove('active');
-        
-        showMessage('Todos os dados foram resetados com sucesso!', 'info');
+        showMessage('Todos os dados foram resetados!', 'info');
     }
 }
 
-// Atualizar select de datas
 function updateDateSelect() {
     dateSelect.innerHTML = '<option value="">Selecione uma data...</option>';
-    
     specialDates.forEach((date, index) => {
         const option = document.createElement('option');
         option.value = date.id;
         option.textContent = `${index + 1}. ${date.title}`;
         dateSelect.appendChild(option);
     });
-    
     updateOrganizeButtons();
 }
 
-// Atualizar botões de organizar
 function updateOrganizeButtons() {
     const selectedId = dateSelect.value;
     const selectedIndex = specialDates.findIndex(date => date.id == selectedId);
-    
-    // Desabilitar botões se não houver seleção
     const hasSelection = selectedId !== '';
     moveUpBtn.disabled = !hasSelection || selectedIndex === 0;
     moveDownBtn.disabled = !hasSelection || selectedIndex === specialDates.length - 1;
     deleteDateBtn.disabled = !hasSelection;
 }
 
-// Mover data para cima
 function moveDateUp() {
     const selectedId = dateSelect.value;
-    const currentIndex = specialDates.findIndex(date => date.id == selectedId);
-    
-    if (currentIndex > 0) {
-        // Trocar posição
-        [specialDates[currentIndex - 1], specialDates[currentIndex]] = 
-        [specialDates[currentIndex], specialDates[currentIndex - 1]];
-        
-        saveData();
-        renderSpecialDates();
-        updateDateSelect();
-        updatePhotoDateSelect();
-        
+    const idx = specialDates.findIndex(d => d.id == selectedId);
+    if (idx > 0) {
+        [specialDates[idx - 1], specialDates[idx]] = [specialDates[idx], specialDates[idx - 1]];
+        saveData(); renderSpecialDates(); updateDateSelect(); updatePhotoDateSelect();
         showMessage('Data movida para cima! ⬆️', 'success');
     }
 }
 
-// Mover data para baixo
 function moveDateDown() {
     const selectedId = dateSelect.value;
-    const currentIndex = specialDates.findIndex(date => date.id == selectedId);
-    
-    if (currentIndex < specialDates.length - 1) {
-        // Trocar posição
-        [specialDates[currentIndex], specialDates[currentIndex + 1]] = 
-        [specialDates[currentIndex + 1], specialDates[currentIndex]];
-        
-        saveData();
-        renderSpecialDates();
-        updateDateSelect();
-        updatePhotoDateSelect();
-        
+    const idx = specialDates.findIndex(d => d.id == selectedId);
+    if (idx < specialDates.length - 1) {
+        [specialDates[idx], specialDates[idx + 1]] = [specialDates[idx + 1], specialDates[idx]];
+        saveData(); renderSpecialDates(); updateDateSelect(); updatePhotoDateSelect();
         showMessage('Data movida para baixo! ⬇️', 'success');
     }
 }
 
-// Deletar data selecionada
 function deleteSelectedDate() {
     const selectedId = dateSelect.value;
-    const selectedDate = specialDates.find(date => date.id == selectedId);
-    
-    if (selectedDate && confirm(`Tem certeza que deseja deletar "${selectedDate.title}"?`)) {
-        specialDates = specialDates.filter(date => date.id != selectedId);
-        
-        saveData();
-        renderSpecialDates();
-        updateDateSelect();
-        updatePhotoDateSelect();
-        
-        showMessage('Data deletada com sucesso! 🗑️', 'info');
+    const selectedDate = specialDates.find(d => d.id == selectedId);
+    if (selectedDate && confirm(`Deletar "${selectedDate.title}"?`)) {
+        specialDates = specialDates.filter(d => d.id != selectedId);
+        saveData(); renderSpecialDates(); updateDateSelect(); updatePhotoDateSelect();
+        showMessage('Data deletada! 🗑️', 'info');
     }
 }
 
-// Atualizar select de datas para fotos
 function updatePhotoDateSelect() {
     photoDateSelect.innerHTML = '<option value="">Selecione uma data para foto...</option>';
-    
     specialDates.forEach((date, index) => {
         const option = document.createElement('option');
         option.value = date.id;
-        option.textContent = `${index + 1}. ${date.title}`;
-        if (date.image) {
-            option.textContent += ' (📷)';
-        }
+        option.textContent = `${index + 1}. ${date.title}${date.image ? ' (📷)' : ''}`;
         photoDateSelect.appendChild(option);
     });
 }
 
-// Upload de imagem no admin
 function handleAdminImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-        showMessage('Selecione uma imagem válida!', 'error');
-        return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-        showMessage('Imagem muito grande! Máx 5MB.', 'error');
-        return;
-    }
-
+    if (!file.type.startsWith('image/')) { showMessage('Selecione uma imagem válida!', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { showMessage('Imagem muito grande! Máx 5MB.', 'error'); return; }
     const reader = new FileReader();
-
-    reader.onload = function(event) {
+    reader.onload = function (event) {
         currentImageData = event.target.result;
-
-        adminImagePreview.innerHTML =
-            `<img src="${currentImageData}" alt="Preview">`;
-
-        showMessage('Imagem carregada com sucesso!', 'success');
+        adminImagePreview.innerHTML = `<img src="${currentImageData}" alt="Preview">`;
+        showMessage('Imagem carregada!', 'success');
     };
-
     reader.readAsDataURL(file);
 }
 
-// Adicionar foto à data selecionada
 function addPhotoToDate() {
     const selectedId = photoDateSelect.value;
-    
-    if (!selectedId) {
-        showMessage('Por favor, selecione uma data primeiro!', 'error');
-        return;
-    }
-    
-    if (!currentImageData) {
-        showMessage('Por favor, selecione uma imagem primeiro!', 'error');
-        return;
-    }
-    
-    // Encontrar a data e adicionar imagem
-    const dateIndex = specialDates.findIndex(date => date.id == selectedId);
-    if (dateIndex !== -1) {
-        specialDates[dateIndex].image = currentImageData;
-        
-        saveData();
-        renderSpecialDates();
-        
-        // Limpar preview e resetar
+    if (!selectedId) { showMessage('Selecione uma data primeiro!', 'error'); return; }
+    if (!currentImageData) { showMessage('Selecione uma imagem primeiro!', 'error'); return; }
+    const idx = specialDates.findIndex(d => d.id == selectedId);
+    if (idx !== -1) {
+        specialDates[idx].image = currentImageData;
+        saveData(); renderSpecialDates();
         currentImageData = null;
         adminImagePreview.innerHTML = '<div class="placeholder">Nenhuma imagem selecionada</div>';
         adminDateImageInput.value = '';
-        
-        showMessage('Foto adicionada com sucesso! 📷', 'success');
+        showMessage('Foto adicionada! 📷', 'success');
     }
 }
 
-// Compartilhar dados entre dispositivos
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href)
+        .then(() => showMessage('Link copiado! 📱', 'success'))
+        .catch(() => showMessage('Não foi possível copiar o link.', 'error'));
+}
 
-
-// Abrir modal de ampliação
+// =====================================================
+// MODAL DE IMAGEM
+// =====================================================
 function openImageModal(date) {
     modalImage.src = date.image;
     modalTitle.textContent = date.title;
-    
-    const dateObj = new Date(date.date);
-    modalDate.textContent = dateObj.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-    
+    const dateObj = new Date(date.date + 'T12:00:00');
+    modalDate.textContent = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     modalDescription.textContent = date.description || '';
-    
     imageModal.style.display = 'block';
 }
 
-// Fechar modal de ampliação
 function closeImageModal() {
     imageModal.style.display = 'none';
 }
 
-// Criar confete
+// =====================================================
+// CONFETTI
+// =====================================================
 function createConfetti() {
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6ab04c'];
-    
     for (let i = 0; i < 100; i++) {
         setTimeout(() => {
             const confetti = document.createElement('div');
@@ -682,208 +595,40 @@ function createConfetti() {
             confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
             confetti.style.animationDelay = Math.random() * 3 + 's';
             confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-            
             confettiContainer.appendChild(confetti);
-            
-            // Remover confete após animação
-            setTimeout(() => {
-                if (confettiContainer.contains(confetti)) {
-                    confettiContainer.removeChild(confetti);
-                }
-            }, 5000);
+            setTimeout(() => { if (confettiContainer.contains(confetti)) confettiContainer.removeChild(confetti); }, 5000);
         }, i * 30);
     }
 }
 
-// Mostrar mensagem
+// =====================================================
+// MENSAGENS
+// =====================================================
 function showMessage(message, type) {
-    const messageElement = document.createElement('div');
-    messageElement.textContent = message;
-    
-    let bgColor = '#333';
-    if (type === 'success') bgColor = '#27ae60';
-    if (type === 'error') bgColor = '#e74c3c';
-    if (type === 'info') bgColor = '#3498db';
-    
-    messageElement.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${bgColor};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 10px;
-        font-size: 1rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        max-width: 300px;
+    const colors = { success: '#27ae60', error: '#e74c3c', info: '#3498db', warning: '#f39c12' };
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: ${colors[type] || '#333'};
+        color: white; padding: 15px 25px;
+        border-radius: 10px; font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 10000; max-width: 300px;
+        transition: opacity 0.3s ease;
     `;
-    
-    document.body.appendChild(messageElement);
-    
-    // Remover mensagem após 3 segundos
+    document.body.appendChild(el);
     setTimeout(() => {
-        messageElement.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(messageElement)) {
-                document.body.removeChild(messageElement);
-            }
-        }, 300);
+        el.style.opacity = '0';
+        setTimeout(() => { if (document.body.contains(el)) document.body.removeChild(el); }, 300);
     }, 3000);
 }
 
-// Carregar dados do Firebase com fallback para localStorage
-async function loadData() {
-    console.log("🔍 Iniciando diagnóstico do Firebase...");
-    
-    try {
-        // Testar conexão básica com Firebase
-        console.log("📍 Testando conexão com Firebase...");
-        console.log("📍 Projeto ID: sitepedido-79bb0");
-        console.log("📍 Documento: amorVaultX92/linhaTempoAnna2026");
-        
-        // Tentar carregar do Firebase primeiro
-        const snap = await getDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"));
-
-        if (snap.exists()) {
-            const data = snap.data();
-
-            acceptanceDate = data.acceptanceDate
-                ? new Date(data.acceptanceDate)
-                : null;
-
-            specialDates = data.specialDates || [];
-            
-            // Salvar no localStorage como backup
-            localStorage.setItem('proposalData', JSON.stringify({
-                acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
-                specialDates: specialDates
-            }));
-
-            console.log("✅ Dados carregados do Firebase com sucesso!");
-            showMessage("Conectado ao Firebase! 🎉", "success");
-        } else {
-            console.log("⚠️ Documento não encontrado no Firebase");
-            console.log("📦 Usando localStorage...");
-            loadFromLocalStorage();
-            showMessage("Documento não encontrado. Usando armazenamento local.", "warning");
-        }
-    } catch (e) {
-        console.error("❌ Erro detalhado ao carregar Firebase:", e);
-        
-        // Análise específica do erro
-        if (e.code === 'permission-denied') {
-            console.log("🚫 PROBLEMA: Regras de segurança do Firestore negando acesso");
-            console.log("🔧 SOLUÇÃO: Alterar regras no Console Firebase > Firestore > Regras");
-            showMessage("Erro de permissão no Firebase! Verifique as regras de segurança.", "error");
-        } else if (e.code === 'unavailable' || e.code === 'resource-exhausted') {
-            console.log("🚫 PROBLEMA: Projeto Firebase desativado ou quota excedida");
-            console.log("🔧 SOLUÇÃO: Verificar se o projeto está ativo no Console Firebase");
-            showMessage("Projeto Firebase indisponível! Verifique o console.", "error");
-        } else if (e.message && e.message.includes('CORS')) {
-            console.log("🚫 PROBLEMA: CORS bloqueando acesso");
-            console.log("🔧 SOLUÇÃO: Configurar domínio autorizado no Firebase");
-            showMessage("Erro de CORS! Configure o domínio no Firebase.", "error");
-        } else {
-            console.log("🚫 PROBLEMA: Erro desconhecido");
-            console.log("🔧 SOLUÇÃO: Verificar configuração completa do Firebase");
-            showMessage("Erro no Firebase! Usando localStorage.", "warning");
-        }
-        
-        console.log("📦 Usando localStorage como fallback...");
-        loadFromLocalStorage();
-    }
-}
-
-// Carregar do localStorage
-function loadFromLocalStorage() {
-    try {
-        const stored = localStorage.getItem('proposalData');
-        if (stored) {
-            const data = JSON.parse(stored);
-            acceptanceDate = data.acceptanceDate ? new Date(data.acceptanceDate) : null;
-            specialDates = data.specialDates || [];
-            console.log("Dados carregados do localStorage");
-        } else {
-            specialDates = [];
-        }
-    } catch (e) {
-        console.error("Erro ao carregar localStorage:", e);
-        specialDates = [];
-    }
-}
-
-// Salvar dados no Firebase com fallback para localStorage
-async function saveData() {
-    // Sempre salvar no localStorage como backup
-    try {
-        localStorage.setItem('proposalData', JSON.stringify({
-            acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
-            specialDates: specialDates
-        }));
-        console.log("Dados salvos no localStorage (backup)");
-    } catch (e) {
-        console.error("Erro ao salvar no localStorage:", e);
-    }
-
-    // Tentar salvar no Firebase
-    try {
-        await setDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"), {
-            acceptanceDate: acceptanceDate
-                ? acceptanceDate.toISOString()
-                : null,
-            specialDates: specialDates
-        });
-
-        console.log("Dados salvos no Firebase");
-    } catch (e) {
-        console.error("Erro ao salvar Firebase:", e);
-        console.log("Dados mantidos apenas no localStorage");
-        showMessage("Usando armazenamento local. Firebase indisponível.", "warning");
-    }
-}
-
-
-
-
-// Carregar datas especiais
-function loadSpecialDates() {
-    renderSpecialDates();
-}
-
-// Adicionar animações CSS dinamicamente
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
+// =====================================================
+// ANIMAÇÕES CSS EXTRAS
+// =====================================================
+const extraStyle = document.createElement('style');
+extraStyle.textContent = `
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 `;
-document.head.appendChild(style);
+document.head.appendChild(extraStyle);
