@@ -65,7 +65,7 @@ function checkAcceptanceStatus() {
     updatePhotoDateSelect();
     
     if (acceptanceDate) {
-        showAcceptanceScreen();
+        showAcceptanceBanner();
         startCounter();
         updateAcceptanceDate(); // Garantir que a data seja atualizada
     } else {
@@ -120,7 +120,8 @@ function handleYesClick() {
 
     saveData();
 
-    showAcceptanceScreen();
+    // Mostrar banner de aceitação na primeira página
+    showAcceptanceBanner();
     startCounter();
     createConfetti();
     updateAcceptanceDate();
@@ -201,12 +202,26 @@ function handleNoClick(e) {
 function showProposalScreen() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
+    
+    // Ocultar o banner de aceitação
+    const banner = document.getElementById('acceptance-banner');
+    banner.style.display = 'none';
 }
 
 // Mostrar tela de aceitação
 function showAcceptanceScreen() {
     proposalScreen.classList.remove('active');
     acceptanceScreen.classList.add('active');
+}
+
+// Mostrar banner de aceitação na primeira página
+function showAcceptanceBanner() {
+    proposalScreen.classList.add('active');
+    acceptanceScreen.classList.remove('active');
+    
+    // Mostrar o banner de aceitação
+    const banner = document.getElementById('acceptance-banner');
+    banner.style.display = 'block';
 }
 
 // Atualizar data de aceitação
@@ -718,9 +733,10 @@ function showMessage(message, type) {
     }, 3000);
 }
 
-// Carregar dados do localStorage
+// Carregar dados do Firebase com fallback para localStorage
 async function loadData() {
     try {
+        // Tentar carregar do Firebase primeiro
         const snap = await getDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"));
 
         if (snap.exists()) {
@@ -731,17 +747,57 @@ async function loadData() {
                 : null;
 
             specialDates = data.specialDates || [];
-        }
+            
+            // Salvar no localStorage como backup
+            localStorage.setItem('proposalData', JSON.stringify({
+                acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
+                specialDates: specialDates
+            }));
 
-        console.log("Dados carregados do Firebase");
+            console.log("Dados carregados do Firebase");
+        } else {
+            // Se não existe no Firebase, tentar localStorage
+            loadFromLocalStorage();
+        }
     } catch (e) {
         console.error("Erro ao carregar Firebase:", e);
+        console.log("Usando localStorage como fallback...");
+        loadFromLocalStorage();
+    }
+}
+
+// Carregar do localStorage
+function loadFromLocalStorage() {
+    try {
+        const stored = localStorage.getItem('proposalData');
+        if (stored) {
+            const data = JSON.parse(stored);
+            acceptanceDate = data.acceptanceDate ? new Date(data.acceptanceDate) : null;
+            specialDates = data.specialDates || [];
+            console.log("Dados carregados do localStorage");
+        } else {
+            specialDates = [];
+        }
+    } catch (e) {
+        console.error("Erro ao carregar localStorage:", e);
         specialDates = [];
     }
 }
 
-// Salvar dados no localStorage
+// Salvar dados no Firebase com fallback para localStorage
 async function saveData() {
+    // Sempre salvar no localStorage como backup
+    try {
+        localStorage.setItem('proposalData', JSON.stringify({
+            acceptanceDate: acceptanceDate ? acceptanceDate.toISOString() : null,
+            specialDates: specialDates
+        }));
+        console.log("Dados salvos no localStorage (backup)");
+    } catch (e) {
+        console.error("Erro ao salvar no localStorage:", e);
+    }
+
+    // Tentar salvar no Firebase
     try {
         await setDoc(doc(db, "amorVaultX92", "linhaTempoAnna2026"), {
             acceptanceDate: acceptanceDate
@@ -753,7 +809,8 @@ async function saveData() {
         console.log("Dados salvos no Firebase");
     } catch (e) {
         console.error("Erro ao salvar Firebase:", e);
-        showMessage("Erro ao salvar no banco!", "error");
+        console.log("Dados mantidos apenas no localStorage");
+        showMessage("Usando armazenamento local. Firebase indisponível.", "warning");
     }
 }
 
