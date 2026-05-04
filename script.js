@@ -65,7 +65,7 @@ function checkAcceptanceStatus() {
     updatePhotoDateSelect();
     
     if (acceptanceDate) {
-        showAcceptanceBanner();
+        showAcceptanceScreen();
         startCounter();
         updateAcceptanceDate(); // Garantir que a data seja atualizada
     } else {
@@ -120,8 +120,7 @@ function handleYesClick() {
 
     saveData();
 
-    // Mostrar banner de aceitação na primeira página
-    showAcceptanceBanner();
+    showAcceptanceScreen();
     startCounter();
     createConfetti();
     updateAcceptanceDate();
@@ -202,26 +201,12 @@ function handleNoClick(e) {
 function showProposalScreen() {
     proposalScreen.classList.add('active');
     acceptanceScreen.classList.remove('active');
-    
-    // Ocultar o banner de aceitação
-    const banner = document.getElementById('acceptance-banner');
-    banner.style.display = 'none';
 }
 
 // Mostrar tela de aceitação
 function showAcceptanceScreen() {
     proposalScreen.classList.remove('active');
     acceptanceScreen.classList.add('active');
-}
-
-// Mostrar banner de aceitação na primeira página
-function showAcceptanceBanner() {
-    proposalScreen.classList.add('active');
-    acceptanceScreen.classList.remove('active');
-    
-    // Mostrar o banner de aceitação
-    const banner = document.getElementById('acceptance-banner');
-    banner.style.display = 'block';
 }
 
 // Atualizar data de aceitação
