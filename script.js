@@ -185,6 +185,7 @@ function checkAcceptanceStatus() {
         showAcceptanceScreen();
         startCounter();
         updateAcceptanceDate();
+        disableYesBtn();
     } else {
         showProposalScreen();
     }
@@ -245,12 +246,23 @@ function setupEventListeners() {
 // BOTÃO SIM
 // =====================================================
 async function handleYesClick() {
+    if (acceptanceDate) {
+        showAcceptanceScreen();
+        return;
+    }
     acceptanceDate = new Date();
     await saveData();
+    disableYesBtn();
     showAcceptanceScreen();
     startCounter();
     createConfetti();
     updateAcceptanceDate();
+}
+
+function disableYesBtn() {
+    yesBtn.disabled = true;
+    yesBtn.style.opacity = '0.5';
+    yesBtn.style.cursor = 'not-allowed';
 }
 
 // =====================================================
@@ -482,6 +494,10 @@ function handleResetAll() {
         specialDates = [];
         if (counterInterval) { clearInterval(counterInterval); counterInterval = null; }
         saveData();
+        // Reativar botão Sim
+        yesBtn.disabled = false;
+        yesBtn.style.opacity = '';
+        yesBtn.style.cursor = '';
         showProposalScreen();
         renderSpecialDates();
         adminPanel.classList.remove('active');
